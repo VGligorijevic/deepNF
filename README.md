@@ -1,7 +1,6 @@
 # deepNF
-```
 This repository contains Python scripts for "deepNF: Deep network fusion for protein function prediction" by V. Gligorijevic, M. Barot and R. Bonneau.
-```
+
 
 # Citing
 ```
