@@ -23,4 +23,4 @@ python2.7.py main.py example_params.txt
 
 *deepNF* is tested to work under Python 2.7.
 
-The required dependencies for OhmNet are [Keras](https://keras.io/), [TensorFlow](https://www.tensorflow.org/), [Numpy](http://www.numpy.org/), and [scikit-learn](http://scikit-learn.org/)
+The required dependencies for *deepNF* are [Keras](https://keras.io/), [TensorFlow](https://www.tensorflow.org/), [Numpy](http://www.numpy.org/), and [scikit-learn](http://scikit-learn.org/)
