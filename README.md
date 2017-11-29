@@ -15,6 +15,7 @@ This repository contains Python scripts for "deepNF: Deep network fusion for pro
 }
 ```
 ## Usage
+
 To run *deepNF* run the following command from the project directory:
 ```
 python2.7.py main.py example_params.txt
@@ -26,5 +27,7 @@ python2.7.py main.py example_params.txt
 The required dependencies for *deepNF* are [Keras](https://keras.io/), [TensorFlow](https://www.tensorflow.org/), [Numpy](http://www.numpy.org/), and [scikit-learn](http://scikit-learn.org/).
 
 ## Data
-Preprocessed human and yeast networks, as well as protein annotations used in the paper can be downloaded from: 
+
+Data (PPMI matrices for human and yeast STRING networks, as well as protein annotations) used for producing figures in the paper can be downloaded from: 
+
 https://drive.google.com/drive/folders/1iDz_kj41YohUq5nukI0GcBAjXsyI7xEW?usp=sharing
