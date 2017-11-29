@@ -28,6 +28,6 @@ The required dependencies for *deepNF* are [Keras](https://keras.io/), [TensorFl
 
 ## Data
 
-Data (PPMI matrices for human and yeast STRING networks, as well as protein annotations) used for producing figures in the paper can be downloaded from: 
+Data (PPMI matrices for human and yeast STRING networks as well as protein annotations) used for producing figures in the paper can be downloaded from: 
 
 https://drive.google.com/drive/folders/1iDz_kj41YohUq5nukI0GcBAjXsyI7xEW?usp=sharing
