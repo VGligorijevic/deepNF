@@ -18,7 +18,7 @@ This repository contains Python scripts for "deepNF: Deep network fusion for pro
 
 To run *deepNF* run the following command from the project directory:
 ```
-python2.7.py main.py example_params.txt
+python2.7 main.py example_params.txt
 ```
 ## Dependencies
 
