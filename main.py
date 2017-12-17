@@ -1,5 +1,6 @@
 import os
 os.environ["KERAS_BACKEND"] = "tensorflow"
+from pathlib import Path
 from keras.models import Model, load_model
 from sklearn.preprocessing import minmax_scale
 from validation import cross_validation, temporal_holdout
@@ -197,6 +198,12 @@ if model_type == 'mda':
         print "### Running for: %s" % (model_name)
         fout.write(model_name)
         fout.write('\n')
+        my_file = Path(models_path + model_name)
+        if my_file.exists():
+            mid_model = load_model(models_path + model_name)
+        else:
+            print "### Model % s does not exist. Use 'mark=--all' to generate models." % (mode_name)
+            break
         mid_model = load_model(models_path + model_name)
         features = mid_model.predict(Nets)
         features = minmax_scale(features)
