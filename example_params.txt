@@ -9,5 +9,5 @@ batch_size=128
 n_trials=10
 K=3
 alpha=0.98
-models_path=/mnt/home/vgligorijevic/Desktop/deepNF_models/
-results_path=/mnt/home/vgligorijevic/Desktop/deepNF_results/
+models_path=./models/
+results_path=./results/

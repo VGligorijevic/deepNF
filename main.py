@@ -202,7 +202,7 @@ if model_type == 'mda':
         if my_file.exists():
             mid_model = load_model(models_path + model_name)
         else:
-            print "### Model % s does not exist. Use 'mark=--all' to generate models." % (mode_name)
+            print "### Model % s does not exist. Use 'mark=--all' to generate models." % (model_name)
             break
         mid_model = load_model(models_path + model_name)
         features = mid_model.predict(Nets)
