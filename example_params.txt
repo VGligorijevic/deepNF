@@ -1,4 +1,4 @@
-mark=--no
+mark=--all
 org=yeast
 valid_type=th
 model_type=mda
