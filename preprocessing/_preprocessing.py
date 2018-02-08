@@ -3,6 +3,7 @@
 import numpy as np
 import scipy.io as sio
 from scipy.sparse import coo_matrix
+import pickle
 
 
 def _load_network(filename, mtrx='adj'):
@@ -93,7 +94,7 @@ def _scaleSimMat(A):
     return A
 
 
-def randSurf(A, max_step=10, alpha=0.98):
+def RWR(A, K=3, alpha=0.98):
     """Random Walk on graph"""
     A = _scaleSimMat(A)
     # Random surfing
@@ -101,7 +102,7 @@ def randSurf(A, max_step=10, alpha=0.98):
     P0 = np.eye(n, dtype=float)
     P = P0.copy()
     M = np.zeros((n, n), dtype=float)
-    for i in range(0, max_step):
+    for i in range(0, K):
         P = alpha*np.dot(P, A) + (1. - alpha)*P0
         M = M + P
 
@@ -124,3 +125,25 @@ def PPMI_matrix(M):
     PPMI[PPMI < 0] = 0
 
     return PPMI
+
+
+if __name__ == "__main__":
+    path_to_string_nets = 'path_to_string_nets'
+    string_nets = ['neighborhood', 'fusion', 'cooccurence',
+                   'coexpression', 'experimental', 'database']
+    filenames = []
+    for net in string_nets:
+        filenames.append(path_to_string_nets + 'yeast_string_' + net + '_adjacency.txt')
+
+    # Load STRING networks
+    Nets = load_networks(filenames)
+    # Compute RWR + PPMI
+    for i in range(0, len(Nets)):
+        print
+        print "### Computing PPMI for network: %s" % (string_nets[i])
+        Nets[i] = RWR(Nets[i])
+        Nets[i] = PPMI_matrix(Nets[i])
+        print "### Writing output to file..."
+        fWrite = open('yeast_net_' + str(i+1) + '_K3_alpha0.98.pckl', 'wb')
+        pickle.dump(Nets[i], fWrite)
+        fWrite.close()
