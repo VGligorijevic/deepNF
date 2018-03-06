@@ -1,6 +1,8 @@
-keras
-tensorflow
-numpy
-scikit-learn
-h5py
-matplotlib
+# Versions of packages from 12/14/2017
+keras==2.1.2
+tensorflow==1.4.1
+numpy==1.13.3
+scikit-learn==0.19.1
+h5py==2.7.1
+matplotlib==2.1.1
+pathlib==1.0.1
