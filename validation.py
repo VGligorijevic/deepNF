@@ -3,8 +3,17 @@ from sklearn import svm
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.metrics import accuracy_score, f1_score
 from sklearn.model_selection import ShuffleSplit, KFold
-from scipy.stats import sem as std
-from sklearn.metrics.pairwise import rbf_kernel
+from sklearn.metrics.pairwise import rbf_kernel, linear_kernel
+from sklearn.utils import resample
+
+
+def kernel_func(X, Y=None, param=0):
+    if param != 0:
+        K = rbf_kernel(X, Y, gamma=param)
+    else:
+        K = linear_kernel(X, Y)
+
+    return K
 
 
 def real_AUPR(label, score):
@@ -77,33 +86,36 @@ def evaluate_performance(y_test, y_score, y_pred):
     return perf
 
 
-def temporal_holdout(X, y, indx, bootstrap, fname, goterms=None, go_fname=None):
+def temporal_holdout(X, y, indx, goterms, bootstraps=None, ker='rbf'):
     """Perform temporal holdout validation"""
-
     X_train = X[indx['train'].tolist()]
     X_test = X[indx['test'].tolist()]
     X_valid = X[indx['valid'].tolist()]
-    y_train = y['train'].tolist()
-    y_test = y['test'].tolist()
-    y_valid = y['valid'].tolist()
-    if goterms is not None:
-        goterms = goterms['terms'].tolist()
+    y_train = np.array(y['train'].tolist())
+    y_test = np.array(y['test'].tolist())
+    y_valid = np.array(y['valid'].tolist())
+    goterms = goterms['terms'].tolist()
 
     # range of hyperparameters
     C_range = 10.**np.arange(-1, 3)
-    gamma_range = 10.**np.arange(-3, 1)
+    if ker == 'rbf':
+        gamma_range = 10.**np.arange(-3, 1)
+    elif ker == 'lin':
+        gamma_range = [0]
+    else:
+        print ("### Wrong kernel.")
 
     # pre-generating kernels
-    print "### Pregenerating kernels..."
+    print ("### Pregenerating kernels...")
     K_rbf_train = {}
     K_rbf_test = {}
     K_rbf_valid = {}
     for gamma in gamma_range:
-        K_rbf_train[gamma] = rbf_kernel(X_train, gamma=gamma)
-        K_rbf_test[gamma] = rbf_kernel(X_test, X_train, gamma=gamma)
-        K_rbf_valid[gamma] = rbf_kernel(X_valid, X_train, gamma=gamma)
-    print "### Done."
-    print "Train samples=%d; #Test samples=%d" % (y_train.shape[0], y_test.shape[0])
+        K_rbf_train[gamma] = kernel_func(X_train, param=gamma)
+        K_rbf_test[gamma] = kernel_func(X_test, X_train, param=gamma)
+        K_rbf_valid[gamma] = kernel_func(X_valid, X_train, param=gamma)
+    print ("### Done.")
+    print ("Train samples=%d; #Test samples=%d" % (y_train.shape[0], y_test.shape[0]))
 
     # parameter fitting
     C_opt = None
@@ -113,34 +125,37 @@ def temporal_holdout(X, y, indx, bootstrap, fname, goterms=None, go_fname=None):
         for gamma in gamma_range:
             # Multi-label classification
             clf = OneVsRestClassifier(svm.SVC(C=C, kernel='precomputed',
-                                              probability=False), n_jobs=-1)
+                                              random_state=123,
+                                              probability=True), n_jobs=-1)
             clf.fit(K_rbf_train[gamma], y_train)
-            y_score_valid = clf.decision_function(K_rbf_valid[gamma])
+            # y_score_valid = clf.decision_function(K_rbf_valid[gamma])
+            y_score_valid = clf.predict_proba(K_rbf_valid[gamma])
             y_pred_valid = clf.predict(K_rbf_valid[gamma])
             perf = evaluate_performance(y_valid,
                                         y_score_valid,
                                         y_pred_valid)
             micro_aupr = perf['m-aupr']
-            print "### gamma = %0.3f, C = %0.3f, AUPR = %0.3f" % (gamma, C, micro_aupr)
+            print ("### gamma = %0.3f, C = %0.3f, AUPR = %0.3f" % (gamma, C, micro_aupr))
             if micro_aupr > max_aupr:
                 C_opt = C
                 gamma_opt = gamma
                 max_aupr = micro_aupr
-    print "### Optimal parameters: "
-    print "C_opt = %0.3f, gamma_opt = %0.3f" % (C_opt, gamma_opt)
-    print "### Train dataset: AUPR = %0.3f" % (max_aupr)
+    print ("### Optimal parameters: ")
+    print ("C_opt = %0.3f, gamma_opt = %0.3f" % (C_opt, gamma_opt))
+    print ("### Train dataset: AUPR = %0.3f" % (max_aupr))
     print
-    print "### Computing performance on test dataset..."
+    print ("### Computing performance on test dataset...")
     clf = OneVsRestClassifier(svm.SVC(C=C_opt, kernel='precomputed',
-                                      probability=False), n_jobs=-1)
+                                      random_state=123,
+                                      probability=True), n_jobs=-1)
     clf.fit(K_rbf_train[gamma_opt], y_train)
 
     # Compute performance on test set
-    y_score = clf.decision_function(K_rbf_test[gamma_opt])
+    # y_score = clf.decision_function(K_rbf_test[gamma_opt])
+    y_score = clf.predict_proba(K_rbf_test[gamma_opt])
     y_pred = clf.predict(K_rbf_test[gamma_opt])
 
     # performance measures for bootstrapping
-    perf = dict()
     pr_micro = []
     pr_macro = []
     fmax = []
@@ -151,7 +166,16 @@ def temporal_holdout(X, y, indx, bootstrap, fname, goterms=None, go_fname=None):
     for i in range(0, len(goterms)):
         pr_goterms[goterms[i]] = []
 
-    for ind in bootstrap:
+    # bootstraps
+    if bootstraps is None:
+        # generate indices for bootstraps
+        bootstraps = []
+        for i in range(0, 10000):
+            bootstraps.append(resample(np.arange(y_test.shape[0])))
+    else:
+        pass
+
+    for ind in bootstraps:
         perf_ind = evaluate_performance(y_test[ind],
                                         y_score[ind],
                                         y_pred[ind])
@@ -162,37 +186,17 @@ def temporal_holdout(X, y, indx, bootstrap, fname, goterms=None, go_fname=None):
         for i in range(0, len(goterms)):
             pr_goterms[goterms[i]].append(perf_ind[i])
 
-    perf['m-aupr_avg'] = np.mean(pr_micro)
-    perf['m-aupr_std'] = std(pr_micro)
-    perf['M-aupr_avg'] = np.mean(pr_macro)
-    perf['M-aupr_std'] = std(pr_macro)
-    perf['F1_avg'] = np.mean(fmax)
-    perf['F1_std'] = std(fmax)
-    perf['acc_avg'] = np.mean(acc)
-    perf['acc_std'] = std(acc)
-
-    # trials
-    fout = open(fname, 'w')
-    print>>fout, "aupr[micro], aupr[macro], F_max, accuracy"
-    for it in range(0, len(bootstrap)):
-        print>>fout, pr_micro[it], pr_macro[it], fmax[it], acc[it]
-    fout.close()
-
-    # write performance on individual GO terms
-    if go_fname is not None:
-        fout = open(go_fname, 'wb')
-        print>>fout, "GO_id, AUPRs"
-        for i in range(0, len(goterms)):
-            print>>fout, goterms[i], sum(y_train[:, i])/float(y_train.shape[0]),
-            for pr in pr_goterms[goterms[i]]:
-                print>>fout, pr,
-            print>>fout
-        fout.close()
+    perf = dict()
+    perf['pr_micro'] = pr_micro
+    perf['pr_macro'] = pr_macro
+    perf['fmax'] = fmax
+    perf['acc'] = acc
+    perf['pr_goterms'] = pr_goterms
 
     return perf
 
 
-def cross_validation(X, y, n_trials=5, trial_splits=None, fname=None):
+def cross_validation(X, y, n_trials=5, ker='rbf'):
     """Perform model selection via 5-fold cross validation"""
     # filter samples with no annotations
     del_rid = np.where(y.sum(axis=1) == 0)[0]
@@ -201,29 +205,32 @@ def cross_validation(X, y, n_trials=5, trial_splits=None, fname=None):
 
     # range of hyperparameters
     C_range = 10.**np.arange(-1, 3)
-    gamma_range = 10.**np.arange(-3, 1)
+    if ker == 'rbf':
+        gamma_range = 10.**np.arange(-3, 1)
+    elif ker == 'lin':
+        gamma_range = [0]
+    else:
+        print ("### Wrong kernel.")
 
     # pre-generating kernels
-    print "### Pregenerating kernels..."
+    print ("### Pregenerating kernels...")
     K_rbf = {}
     for gamma in gamma_range:
-        K_rbf[gamma] = rbf_kernel(X, gamma=gamma)
-    print "### Done."
+        K_rbf[gamma] = kernel_func(X, param=gamma)
+    print ("### Done.")
 
     # performance measures
-    perf = dict()
     pr_micro = []
     pr_macro = []
     fmax = []
     acc = []
 
-    if trial_splits is None:
-        # shuffle and split training and test sets
-        trials = ShuffleSplit(n_splits=n_trials, test_size=0.2, random_state=None)
-        ss = trials.split(X)
-        trial_splits = []
-        for train_idx, test_idx in ss:
-            trial_splits.append((train_idx, test_idx))
+    # shuffle and split training and test sets
+    trials = ShuffleSplit(n_splits=n_trials, test_size=0.2, random_state=None)
+    ss = trials.split(X)
+    trial_splits = []
+    for train_idx, test_idx in ss:
+        trial_splits.append((train_idx, test_idx))
 
     it = 0
     for jj in range(0, n_trials):
@@ -232,9 +239,8 @@ def cross_validation(X, y, n_trials=5, trial_splits=None, fname=None):
         it += 1
         y_train = y[train_idx]
         y_test = y[test_idx]
-        print "### [Trial %d] Perfom cross validation...." % (it)
-        print "Train samples=%d; #Test samples=%d" % (y_train.shape[0],
-                                                      y_test.shape[0])
+        print ("### [Trial %d] Perfom cross validation...." % (it))
+        print ("Train samples=%d; #Test samples=%d" % (y_train.shape[0], y_test.shape[0]))
         # setup for neasted cross-validation
         splits = ml_split(y_train)
 
@@ -248,7 +254,8 @@ def cross_validation(X, y, n_trials=5, trial_splits=None, fname=None):
                 cv_results = []
                 for train, valid in splits:
                     clf = OneVsRestClassifier(svm.SVC(C=C, kernel='precomputed',
-                                                      probability=False), n_jobs=-1)
+                                                      random_state=123,
+                                                      probability=True), n_jobs=-1)
                     K_train = K_rbf[gamma][train_idx[train], :][:, train_idx[train]]
                     K_valid = K_rbf[gamma][train_idx[valid], :][:, train_idx[train]]
                     y_train_t = y_train[train]
@@ -257,55 +264,49 @@ def cross_validation(X, y, n_trials=5, trial_splits=None, fname=None):
                     y_pred_valid = np.zeros_like(y_train_v)
                     idx = np.where(y_train_t.sum(axis=0) > 0)[0]
                     clf.fit(K_train, y_train_t[:, idx])
-                    y_score_valid[:, idx] = clf.decision_function(K_valid)
+                    # y_score_valid[:, idx] = clf.decision_function(K_valid)
+                    y_score_valid[:, idx] = clf.predict_proba(K_valid)
                     y_pred_valid[:, idx] = clf.predict(K_valid)
                     perf_cv = evaluate_performance(y_train_v,
                                                    y_score_valid,
                                                    y_pred_valid)
                     cv_results.append(perf_cv['m-aupr'])
                 cv_aupr = np.median(cv_results)
-                print "### gamma = %0.3f, C = %0.3f, AUPR = %0.3f" % (gamma, C, cv_aupr)
+                print ("### gamma = %0.3f, C = %0.3f, AUPR = %0.3f" % (gamma, C, cv_aupr))
                 if cv_aupr > max_aupr:
                     C_opt = C
                     gamma_opt = gamma
                     max_aupr = cv_aupr
-        print "### Optimal parameters: "
-        print "C_opt = %0.3f, gamma_opt = %0.3f" % (C_opt, gamma_opt)
-        print "### Train dataset: AUPR = %0.3f" % (max_aupr)
+        print ("### Optimal parameters: ")
+        print ("C_opt = %0.3f, gamma_opt = %0.3f" % (C_opt, gamma_opt))
+        print ("### Train dataset: AUPR = %0.3f" % (max_aupr))
         print
-        print "### Using full training data..."
+        print ("### Using full training data...")
         clf = OneVsRestClassifier(svm.SVC(C=C_opt, kernel='precomputed',
-                                          probability=False), n_jobs=-1)
+                                          random_state=123,
+                                          probability=True), n_jobs=-1)
         y_score = np.zeros(y_test.shape, dtype=float)
         y_pred = np.zeros_like(y_test)
         idx = np.where(y_train.sum(axis=0) > 0)[0]
         clf.fit(K_rbf[gamma_opt][train_idx, :][:, train_idx], y_train[:, idx])
 
         # Compute performance on test set
-        y_score[:, idx] = clf.decision_function(K_rbf[gamma_opt][test_idx, :][:, train_idx])
+        # y_score[:, idx] = clf.decision_function(K_rbf[gamma_opt][test_idx, :][:, train_idx])
+        y_score[:, idx] = clf.predict_proba(K_rbf[gamma_opt][test_idx, :][:, train_idx])
         y_pred[:, idx] = clf.predict(K_rbf[gamma_opt][test_idx, :][:, train_idx])
         perf_trial = evaluate_performance(y_test, y_score, y_pred)
         pr_micro.append(perf_trial['m-aupr'])
         pr_macro.append(perf_trial['M-aupr'])
         fmax.append(perf_trial['F1'])
         acc.append(perf_trial['acc'])
-        print "### Test dataset: AUPR['micro'] = %0.3f, AUPR['macro'] = %0.3f, F1 = %0.3f, Acc = %0.3f" % (perf_trial['m-aupr'], perf_trial['M-aupr'], perf_trial['F1'], perf_trial['acc'])
+        print ("### Test dataset: AUPR['micro'] = %0.3f, AUPR['macro'] = %0.3f, F1 = %0.3f, Acc = %0.3f" % (perf_trial['m-aupr'], perf_trial['M-aupr'], perf_trial['F1'], perf_trial['acc']))
         print
         print
-    perf['m-aupr_avg'] = np.mean(pr_micro)
-    perf['m-aupr_std'] = std(pr_micro)
-    perf['M-aupr_avg'] = np.mean(pr_macro)
-    perf['M-aupr_std'] = std(pr_macro)
-    perf['F1_avg'] = np.mean(fmax)
-    perf['F1_std'] = std(fmax)
-    perf['acc_avg'] = np.mean(acc)
-    perf['acc_std'] = std(acc)
 
-    if fname is not None:
-        fout = open(fname, 'w')
-        print>>fout, "aupr[micro], aupr[macro], F_max, accuracy"
-        for ii in range(0, n_trials):
-            print>>fout, pr_micro[ii], pr_macro[ii], fmax[ii], acc[ii]
-        fout.close()
+    perf = dict()
+    perf['pr_micro'] = pr_micro
+    perf['pr_macro'] = pr_macro
+    perf['fmax'] = fmax
+    perf['acc'] = acc
 
     return perf

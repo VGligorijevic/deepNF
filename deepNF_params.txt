@@ -1,0 +1,14 @@
+org=yeast
+valid_type=cv
+model_type=mda
+select_arch=[2]
+select_nets=[1,2,3,4,5,6]
+ofile_keywords=all_nets
+epochs=80
+batch_size=64
+n_trials=10
+K=3
+alpha=0.98
+noise_factor=0.5
+models_path=./test_models/
+results_path=./test_results/

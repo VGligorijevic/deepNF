@@ -7,11 +7,12 @@ This repository contains Python scripts for "deepNF: Deep network fusion for pro
 @article {Gligorijevic2017,
 	author = {Gligorijevi{\'c}, Vladimir and Barot, Meet and Bonneau, Richard},
 	title = {deepNF: Deep network fusion for protein function prediction},
-	year = {2017},
-	doi = {10.1101/223339},
-	publisher = {Cold Spring Harbor Laboratory},
-	URL = {https://www.biorxiv.org/content/early/2017/11/22/223339},
-	journal = {bioRxiv}
+	year = {2018},
+	doi = {10.1093/bioinformatics/bty440},
+    pages = {bty440},
+	publisher = {Oxford},
+	URL = {http://dx.doi.org/10.1093/bioinformatics/bty440},
+	journal = {Bioinformatics}
 }
 ```
 ## Usage
@@ -28,6 +29,6 @@ The required dependencies for *deepNF* are [Keras](https://keras.io/), [TensorFl
 
 ## Data
 
-Data (PPMI matrices for human and yeast STRING networks as well as protein annotations) used for producing figures in the paper can be downloaded from: 
+Data (PPMI matrices for human and yeast STRING networks as well as protein annotations) used for producing figures in the paper can be downloaded from:
 
 https://drive.google.com/drive/folders/1iDz_kj41YohUq5nukI0GcBAjXsyI7xEW?usp=sharing
