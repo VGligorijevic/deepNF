@@ -9,7 +9,7 @@ This repository contains Python scripts for "deepNF: Deep network fusion for pro
 	title = {deepNF: Deep network fusion for protein function prediction},
 	year = {2018},
 	doi = {10.1093/bioinformatics/bty440},
-    pages = {bty440},
+        pages = {bty440},
 	publisher = {Oxford},
 	URL = {http://dx.doi.org/10.1093/bioinformatics/bty440},
 	journal = {Bioinformatics}
