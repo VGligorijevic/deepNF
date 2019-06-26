@@ -19,11 +19,16 @@ This repository contains Python scripts for "deepNF: Deep network fusion for pro
 
 To run *deepNF* run the following command from the project directory:
 ```
-python2.7 main.py example_params.txt
+python main.py
 ```
+To see the list of options:
+```
+python main.py --help
+```
+
 ## Dependencies
 
-*deepNF* is tested to work under Python 2.7.
+*deepNF* is tested to work under Python 3.6.
 
 The required dependencies for *deepNF* are [Keras](https://keras.io/), [TensorFlow](https://www.tensorflow.org/), [Numpy](http://www.numpy.org/), and [scikit-learn](http://scikit-learn.org/).
 
