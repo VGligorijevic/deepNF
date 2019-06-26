@@ -1,31 +1,30 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-import scipy.io as sio
 from scipy.sparse import coo_matrix
 import pickle
 
 
 def _load_network(filename, mtrx='adj'):
-    print "### Loading [%s]..." % (filename)
+    print ("### Loading [%s]..." % (filename))
     if mtrx == 'adj':
         i, j, val = np.loadtxt(filename).T
         A = coo_matrix((val, (i-1, j-1)))
         A = A.todense()
         A = np.squeeze(np.asarray(A))
         if A.min() < 0:
-            print "### Negative entries in the matrix are not allowed!"
+            print ("### Negative entries in the matrix are not allowed!")
             A[A < 0] = 0
-            print "### Matrix converted to nonnegative matrix."
+            print ("### Matrix converted to nonnegative matrix.")
             print
         if (A.T == A).all():
             pass
         else:
-            print "### Matrix not symmetric!"
+            print ("### Matrix not symmetric!")
             A = A + A.T
-            print "### Matrix converted to symmetric."
+            print ("### Matrix converted to symmetric.")
     else:
-        print "### Wrong mtrx type. Possible: {'adj', 'inc'}"
+        print ("### Wrong mtrx type. Possible: {'adj', 'inc'}.")
     A = A - np.diag(np.diag(A))
     A = A + np.diag(A.sum(axis=1) == 0)
 
@@ -50,16 +49,16 @@ def _net_normalize(X):
     Normalizing networks according to node degrees.
     """
     if X.min() < 0:
-        print "### Negative entries in the matrix are not allowed!"
+        print ("### Negative entries in the matrix are not allowed!")
         X[X < 0] = 0
-        print "### Matrix converted to nonnegative matrix."
+        print ("### Matrix converted to nonnegative matrix.")
         print
     if (X.T == X).all():
         pass
     else:
-        print "### Matrix not symmetric."
+        print ("### Matrix not symmetric.")
         X = X + X.T - np.diag(np.diag(X))
-        print "### Matrix converted to symmetric."
+        print ("### Matrix converted to symmetric.")
 
     # normalizing the matrix
     deg = X.sum(axis=1).flatten()
@@ -139,11 +138,11 @@ if __name__ == "__main__":
     Nets = load_networks(filenames)
     # Compute RWR + PPMI
     for i in range(0, len(Nets)):
-        print
-        print "### Computing PPMI for network: %s" % (string_nets[i])
+        print ('\n')
+        print ("### Computing PPMI for network: %s" % (string_nets[i]))
         Nets[i] = RWR(Nets[i])
         Nets[i] = PPMI_matrix(Nets[i])
-        print "### Writing output to file..."
+        print ("### Writing output to file...")
         fWrite = open('yeast_net_' + str(i+1) + '_K3_alpha0.98.pckl', 'wb')
         pickle.dump(Nets[i], fWrite)
         fWrite.close()
