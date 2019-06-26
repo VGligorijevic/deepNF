@@ -1,7 +1,7 @@
 from keras.models import Model
 from keras.optimizers import SGD
 from keras.layers import Input, Dense, concatenate
-from keras import regularizers
+# from keras import regularizers
 
 
 def build_AE(input_dim, encoding_dims):
@@ -13,7 +13,7 @@ def build_AE(input_dim, encoding_dims):
     hidden_layer = input_layer
     for i in range(0, len(encoding_dims)):
         # generate hidden layer
-        if i == len(encoding_dims)/2:
+        if i == int(len(encoding_dims)/2):
             hidden_layer = Dense(encoding_dims[i],
                                  activation='sigmoid',
                                  # activity_regularizer=regularizers.l1(10e-6),
@@ -48,8 +48,7 @@ def build_MDA(input_dims, encoding_dims):
     # hidden layers
     hidden_layers = []
     for j in range(0, len(input_dims)):
-        hidden_layers.append(Dense(encoding_dims[0]/len(input_dims),
-                                   # activity_regularizer=regularizers.l1(gamma[j]),
+        hidden_layers.append(Dense(int(encoding_dims[0]/len(input_dims)),
                                    activation='sigmoid')(input_layers[j]))
 
     # Concatenate layers
@@ -78,7 +77,7 @@ def build_MDA(input_dims, encoding_dims):
     # hidden layers
     hidden_layers = []
     for j in range(0, len(input_dims)):
-        hidden_layers.append(Dense(encoding_dims[-1]/len(input_dims),
+        hidden_layers.append(Dense(int(encoding_dims[-1]/len(input_dims)),
                                    activation='sigmoid')(hidden_layer))
     # output layers
     output_layers = []
@@ -94,11 +93,9 @@ def build_MDA(input_dims, encoding_dims):
 
     return model
 
-
+"""
 def build_MDA2(input_dims, encoding_dims):
-    """
-    Function for building mixed multimodal autoencoder.
-    """
+    #  Function for building mixed multimodal autoencoder.
     # input layers
     input_layers = []
     for dim in input_dims:
@@ -176,3 +173,4 @@ def build_MDA2(input_dims, encoding_dims):
     print (model.summary())
 
     return model
+"""
