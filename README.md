@@ -26,6 +26,21 @@ To see the list of options:
 python main.py --help
 ```
 
+To compute network emgeddings only use *net_embedding* script:
+
+
+```
+python net_embedding.py --model_type ae --nets example_net_1.txt
+(for a single network)
+```
+
+```
+python net_embedding.py --model_type mda --nets example_net_1.txt
+example_net_2.txt  (for multiple networks)
+```
+
+
+
 ## Dependencies
 
 *deepNF* is tested to work under Python 3.6.
