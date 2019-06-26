@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-from scipy.sparse import coo_matrix
+import networkx as nx
 import pickle
 
 
 def _load_network(filename, mtrx='adj'):
     print ("### Loading [%s]..." % (filename))
     if mtrx == 'adj':
-        i, j, val = np.loadtxt(filename).T
-        A = coo_matrix((val, (i-1, j-1)))
+        G = nx.read_edgelist(filename, edgetype=float, data=(('weight', float),))
+        A = nx.adjacency_matrix(G)
         A = A.todense()
         A = np.squeeze(np.asarray(A))
         if A.min() < 0:
@@ -77,6 +77,7 @@ def net_normalize(Net):
     if isinstance(Net, list):
         for i in range(len(Net)):
             Net[i] = _net_normalize(Net[i])
+        print (A.shape)
     else:
         Net = _net_normalize(Net)
 

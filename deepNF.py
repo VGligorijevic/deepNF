@@ -59,7 +59,7 @@ def build_MDA(input_dims, encoding_dims):
 
     # middle layers
     for i in range(1, len(encoding_dims)-1):
-        if i == len(encoding_dims)/2:
+        if i == int(len(encoding_dims)/2):
             hidden_layer = Dense(encoding_dims[i],
                                  name='middle_layer',
                                  # kernel_regularizer=regularizers.l1(1e-5),
