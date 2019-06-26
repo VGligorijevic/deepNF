@@ -30,7 +30,7 @@ python main.py --help
 
 *deepNF* is tested to work under Python 3.6.
 
-The required dependencies for *deepNF* are [Keras](https://keras.io/), [TensorFlow](https://www.tensorflow.org/), [Numpy](http://www.numpy.org/), and [scikit-learn](http://scikit-learn.org/).
+The required dependencies for *deepNF* are [Keras](https://keras.io/), [TensorFlow](https://www.tensorflow.org/), [Numpy](http://www.numpy.org/), [NetworkX](https://networkx.github.io/) and [scikit-learn](http://scikit-learn.org/).
 
 ## Data
 
