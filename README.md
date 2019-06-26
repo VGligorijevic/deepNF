@@ -26,17 +26,20 @@ To see the list of options:
 python main.py --help
 ```
 
-To compute network emgeddings only use *net_embedding* script:
+To compute network emgeddings only use *net_embedding.py* script. Input file
+format: edgelist (i, j, w\_ij)
+
+For a single network:
 
 
 ```
 python net_embedding.py --model_type ae --nets example_net_1.txt
-(for a single network)
 ```
 
+For multiple networks:
+
 ```
-python net_embedding.py --model_type mda --nets example_net_1.txt
-example_net_2.txt  (for multiple networks)
+python net_embedding.py --model_type mda --nets example_net_1.txt example_net_2.txt
 ```
 
 
