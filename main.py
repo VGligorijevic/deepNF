@@ -172,6 +172,8 @@ if __name__ == "__main__":
         print (arch[model_type][org][a])
         if not Path.isfile(models_path + model_name):
             mid_model, history = build_model(Nets, input_dims, arch[model_type][org][a], nf, 1.0, model_type, epochs, batch_size)
+            # make sure the folder exists
+            os.makedirs(os.path.dirname(models_path + model_name), exist_ok=True)
             # save model
             mid_model.save(models_path + model_name)
             with open(models_path + model_name.split('.')[0] + '_history.pckl', 'wb') as file_pi:
@@ -190,7 +192,10 @@ if __name__ == "__main__":
 
     # Training SVM
     for model_name in model_names:
-        print ("### Running for: %s" % (model_name))
+        print ("### Running for: %s" % (model_name))            
+        # make sure the folder exists
+        os.makedirs(os.path.dirname(results_path + model_name), exist_ok=True)
+        os.makedirs(os.path.dirname(models_path + model_name), exist_ok=True)
         fout = open(results_path + model_name.split('.')[0] + '_' + valid_type + '.txt', 'w')
         fout.write('### %s\n' % (model_name))
         fout.write('\n')
